@@ -1,13 +1,13 @@
 import { test as base } from '@playwright/test';
-import { HealthClient } from '../../src/clients/health-client.js';
+import { ClientApi } from '../../src/clients/client-api.js';
 
 type ApiFixtures = {
-  healthClient: HealthClient;
+  clientApi: ClientApi;
 };
 
 export const test = base.extend<ApiFixtures>({
-  healthClient: async ({ request }, use) => {
-    await use(new HealthClient(request));
+  clientApi: async ({ request }, use) => {
+    await use(new ClientApi(request));
   }
 });
 

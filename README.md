@@ -1,6 +1,6 @@
 # Automação de API com Playwright + TypeScript
 
-Estrutura base para testes de contrato, integração e fluxos de API usando `@playwright/test` e a API `request` nativa do Playwright.
+Suíte de automação de API para o [BankSystemDevTrail](https://github.com/JoaoPCP/BankSystemDevTrail), usando `@playwright/test` e o cliente HTTP nativo do Playwright.
 
 ## Pré-requisitos
 
@@ -9,8 +9,9 @@ Estrutura base para testes de contrato, integração e fluxos de API usando `@pl
 ## Como executar
 
 1. Instale as dependências: `npm install`
-2. Copie `.env.example` para `.env` e preencha `API_BASE_URL`.
-3. Execute os testes: `npm test`
+2. Suba a API sob teste em `http://localhost:5082`.
+3. Copie `.env.example` para `.env` e ajuste `API_BASE_URL` se necessário.
+4. Execute os testes: `npm test`
 
 Comandos úteis:
 
@@ -33,4 +34,4 @@ tests/
   data/          Massas de teste estáticas e builders
 ```
 
-Crie um cliente por recurso em `src/clients` e mantenha os testes focados em comportamento e asserções. Credenciais e URLs ficam exclusivamente em `.env`.
+Crie um cliente por recurso em `src/clients` e mantenha os testes focados em comportamento e asserções. A primeira entidade coberta é `Cliente`: criação, regra de CPF único, consulta, atualização e recurso inexistente. Credenciais e URLs ficam exclusivamente em `.env`.
