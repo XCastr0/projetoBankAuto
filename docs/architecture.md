@@ -74,3 +74,7 @@ O job de API não roda em pull requests de forks, evitando expor secrets a códi
 ## Próximas evoluções
 
 Antes de introduzir banco, Cloud SQL ou ambientes efêmeros, a próxima validação é executar a suíte contra uma API real e confirmar os contratos de sucesso e o cleanup após transações. Depois disso, a evolução natural é ampliar a cobertura de regras transacionais e somente extrair fixtures ou builders quando houver duplicação comprovada.
+
+## Decisões registradas
+
+- [ADR 001 — Playwright sem Cucumber](decisions/001-playwright-without-cucumber.md)
