@@ -1,5 +1,5 @@
 import { expect, test } from '../fixtures/api.fixture.js';
-import { isClientResponse, type ClientResponse } from '../../src/schemas/client.schema.js';
+import { isClientResponse } from '../../src/schemas/client.schema.js';
 import type { ClientApi } from '../../src/clients/client-api.js';
 import { newClient } from '../data/client-data.js';
 
@@ -31,7 +31,10 @@ test.describe('Cliente', () => {
   test('impede o cadastro de CPF duplicado', async ({ clientApi }) => {
     const payload = newClient();
     const firstResponse = await clientApi.create(payload);
-    const firstBody = (await firstResponse.json()) as ClientResponse;
+    expect(firstResponse.status()).toBe(201);
+    const firstBody: unknown = await firstResponse.json();
+    expect(isClientResponse(firstBody)).toBe(true);
+    if (!isClientResponse(firstBody)) throw new Error('Contrato de cliente inválido');
     try {
       const response = await clientApi.create({ ...payload, email: `duplicado.${Date.now()}@example.test` });
 
@@ -44,7 +47,10 @@ test.describe('Cliente', () => {
 
   test('consulta e atualiza um cliente existente', async ({ clientApi }) => {
     const createResponse = await clientApi.create(newClient());
-    const created = (await createResponse.json()) as ClientResponse;
+    expect(createResponse.status()).toBe(201);
+    const created: unknown = await createResponse.json();
+    expect(isClientResponse(created)).toBe(true);
+    if (!isClientResponse(created)) throw new Error('Contrato de cliente inválido');
     try {
       const readResponse = await clientApi.getById(created.id);
       expect(readResponse.status()).toBe(200);

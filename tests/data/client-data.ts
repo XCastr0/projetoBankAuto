@@ -1,10 +1,12 @@
+import { randomInt } from 'node:crypto';
 import type { CreateClientRequest } from '../../src/schemas/client.schema.js';
 
 export function newClient(overrides: Partial<CreateClientRequest> = {}): CreateClientRequest {
-  const uniqueId = `${Date.now()}${Math.floor(Math.random() * 1_000)}`.slice(-11);
+  // Mantém o CPF com 11 dígitos e reduz colisões entre workers paralelos.
+  const uniqueId = String(randomInt(10_000_000_000, 100_000_000_000));
 
   return {
-    name: 'Cliente de Automação',
+    name: `AUTO Cliente ${uniqueId}`,
     email: `qa.${uniqueId}@example.test`,
     cpf: uniqueId,
     birthDate: '1995-05-20',

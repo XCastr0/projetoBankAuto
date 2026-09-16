@@ -17,8 +17,16 @@ Comandos úteis:
 
 - `npm run test:ui` — interface interativa do Playwright.
 - `npm run test:debug` — execução em modo de depuração.
+- `npm run test:api` — executa somente os testes de API.
 - `npm run test:report` — abre o último relatório HTML.
 - `npm run typecheck` — valida os tipos TypeScript.
+
+## Estratégia atual de dados
+
+Os cenários criam dados descartáveis pela própria API. Clientes da automação recebem o prefixo `AUTO` no nome e identificadores únicos; cada teste remove os recursos criados ao terminar, na ordem inversa de dependências.
+
+Nesta fase, a suíte não acessa o banco diretamente. Essa escolha mantém os testes próximos do contrato público da API enquanto a fundação da automação é consolidada. Uma futura preparação por SQL só será considerada para pré-condições internas, em banco de testes isolado e após mapear migrations, ownership dos dados e integrações externas.
+
 
 ## Organização
 

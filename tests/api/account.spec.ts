@@ -2,14 +2,17 @@ import { expect, test } from '../fixtures/api.fixture.js';
 import type { AccountApi } from '../../src/clients/account-api.js';
 import type { ClientApi } from '../../src/clients/client-api.js';
 import { isAccountResponse, type AccountResponse } from '../../src/schemas/account.schema.js';
-import type { ClientResponse } from '../../src/schemas/client.schema.js';
+import { isClientResponse, type ClientResponse } from '../../src/schemas/client.schema.js';
 import { newClient } from '../data/client-data.js';
 
 test.describe('Conta', () => {
   async function createClient(clientApi: ClientApi): Promise<ClientResponse> {
     const response = await clientApi.create(newClient());
     expect(response.status()).toBe(201);
-    return response.json() as Promise<ClientResponse>;
+    const body: unknown = await response.json();
+    expect(isClientResponse(body)).toBe(true);
+    if (!isClientResponse(body)) throw new Error('Contrato de cliente inválido');
+    return body;
   }
 
   async function deleteAccount(accountApi: AccountApi, id: string): Promise<void> {
@@ -56,7 +59,11 @@ test.describe('Conta', () => {
 
     try {
       const createResponse = await accountApi.create({ ownerCPF: client.cpf, accountType: 1 });
-      account = (await createResponse.json()) as AccountResponse;
+      expect(createResponse.status()).toBe(201);
+      const body: unknown = await createResponse.json();
+      expect(isAccountResponse(body)).toBe(true);
+      if (!isAccountResponse(body)) throw new Error('Contrato de conta inválido');
+      account = body;
 
       const response = await accountApi.getByClientCpf(client.cpf);
       expect(response.status()).toBe(200);
@@ -75,7 +82,11 @@ test.describe('Conta', () => {
 
     try {
       const createResponse = await accountApi.create({ ownerCPF: client.cpf, accountType: 0 });
-      account = (await createResponse.json()) as AccountResponse;
+      expect(createResponse.status()).toBe(201);
+      const body: unknown = await createResponse.json();
+      expect(isAccountResponse(body)).toBe(true);
+      if (!isAccountResponse(body)) throw new Error('Contrato de conta inválido');
+      account = body;
 
       const response = await accountApi.update(account.id, { status: 1 });
       expect(response.status()).toBe(200);
