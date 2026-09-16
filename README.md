@@ -47,3 +47,5 @@ tests/
 ```
 
 Crie um cliente por recurso em `src/clients` e mantenha os testes focados em comportamento e asserções. A primeira entidade coberta é `Cliente`: criação, regra de CPF único, consulta, atualização e recurso inexistente. Credenciais e URLs ficam exclusivamente em `.env`.
+
+Para as decisões e os limites da arquitetura atual, consulte a [documentação de arquitetura](docs/architecture.md).
