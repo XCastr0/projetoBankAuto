@@ -27,6 +27,10 @@ Os cenários criam dados descartáveis pela própria API. Clientes da automaçã
 
 Nesta fase, a suíte não acessa o banco diretamente. Essa escolha mantém os testes próximos do contrato público da API enquanto a fundação da automação é consolidada. Uma futura preparação por SQL só será considerada para pré-condições internas, em banco de testes isolado e após mapear migrations, ownership dos dados e integrações externas.
 
+## Integração contínua
+
+O workflow de CI sempre executa instalação reprodutível e typecheck. Os testes de API são executados quando a variável de repositório `API_BASE_URL` estiver configurada para um ambiente de teste acessível ao runner. O token opcional deve ser configurado como o secret `API_TOKEN`; ele nunca é registrado no repositório.
+
 
 ## Organização
 
