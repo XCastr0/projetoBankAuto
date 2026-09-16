@@ -46,6 +46,6 @@ tests/
   data/          Massas de teste estáticas e builders
 ```
 
-Crie um cliente por recurso em `src/clients` e mantenha os testes focados em comportamento e asserções. A primeira entidade coberta é `Cliente`: criação, regra de CPF único, consulta, atualização e recurso inexistente. Credenciais e URLs ficam exclusivamente em `.env`.
+Crie um cliente por recurso em `src/clients` e mantenha os testes focados em comportamento e asserções. A suíte cobre `Cliente`, `Conta` e `Transações`, incluindo cenários positivos e negativos. Credenciais e URLs ficam exclusivamente em `.env`.
 
 Para as decisões e os limites da arquitetura atual, consulte a [documentação de arquitetura](docs/architecture.md) e a [matriz de cobertura](docs/test-coverage.md).
