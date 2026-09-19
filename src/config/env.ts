@@ -8,5 +8,6 @@ function required(name: string): string {
 
 export const env = {
   apiBaseUrl: required('API_BASE_URL'),
-  apiToken: process.env.API_TOKEN
+  apiToken: process.env.API_TOKEN,
+  testDbConnectionString: process.env.TEST_DB_CONNECTION_STRING
 };
