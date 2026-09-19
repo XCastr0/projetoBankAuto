@@ -25,7 +25,9 @@ Comandos úteis:
 
 Os cenários criam dados descartáveis pela própria API. Clientes da automação recebem o prefixo `AUTO` no nome e identificadores únicos; cada teste remove os recursos criados ao terminar, na ordem inversa de dependências.
 
-Nesta fase, a suíte não acessa o banco diretamente. Essa escolha mantém os testes próximos do contrato público da API enquanto a fundação da automação é consolidada. Uma futura preparação por SQL só será considerada para pré-condições internas, em banco de testes isolado e após mapear migrations, ownership dos dados e integrações externas.
+Nesta fase, a preparação de massa é feita pela API. Essa escolha mantém os testes próximos do contrato público enquanto a fundação da automação é consolidada. SQL não é usado para criar pré-condições; seu uso só será considerado para necessidades internas, em banco de testes isolado e após mapear migrations, ownership dos dados e integrações externas.
+
+Os cenários de transação usam SQL Server apenas no cleanup, pois a API preserva o histórico financeiro e bloqueia a exclusão de contas movimentadas. Configure `TEST_DB_CONNECTION_STRING` exclusivamente para o banco de testes; a limpeza remove somente transações, contas e clientes identificados pelos IDs criados no próprio cenário.
 
 ## Integração contínua
 
