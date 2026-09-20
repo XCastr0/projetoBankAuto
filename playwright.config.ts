@@ -7,7 +7,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   // Falhas devem ser investigadas; retries não devem ocultar instabilidade.
   retries: 0,
-  reporter: [['html', { open: 'never' }], ['list']],
+  reporter: [['html', { open: 'never' }], ['list'], ['./tests/reporters/prometheus-reporter.ts']],
   use: {
     baseURL: process.env.API_BASE_URL,
     extraHTTPHeaders: {

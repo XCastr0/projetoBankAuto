@@ -1,0 +1,25 @@
+// Encaminha somente métricas agregadas da automação para o Grafana Cloud.
+// As credenciais são lidas do ambiente e nunca devem ser escritas neste arquivo.
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_CLOUD_METRICS_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_CLOUD_METRICS_USERNAME")
+      password = sys.env("GRAFANA_CLOUD_METRICS_TOKEN")
+    }
+  }
+}
+
+prometheus.scrape "playwright_api_tests" {
+  targets = [
+    {
+      "__address__" = "pushgateway:9091",
+      "job"         = "playwright-api-tests",
+    },
+  ]
+
+  scrape_interval = "15s"
+  honor_labels    = true
+  forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+}

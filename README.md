@@ -20,6 +20,32 @@ Comandos úteis:
 - `npm run test:api` — executa somente os testes de API.
 - `npm run test:report` — abre o último relatório HTML.
 - `npm run typecheck` — valida os tipos TypeScript.
+- `npm run observability:up` — inicia Grafana, Prometheus e Pushgateway localmente.
+- `npm run observability:down` — para o ambiente local de observabilidade.
+
+## Dashboard de qualidade
+
+O dashboard local separa cenários aprovados, falhas que exigem ação e bugs conhecidos monitorados. Ele não registra payloads, respostas, tokens ou connection strings; esses detalhes continuam restritos ao relatório HTML do Playwright.
+
+1. Execute `npm run observability:up`.
+2. Defina `PUSHGATEWAY_URL=http://localhost:9091` no `.env` local.
+3. Execute `npm run test:api`.
+4. Abra [http://localhost:3000](http://localhost:3000) e entre com `admin` / `admin`.
+5. Acesse **Dashboards → QA Automation → Bank API - Qualidade da Automação**.
+
+O reporter também grava o arquivo Prometheus em `test-results/metrics/playwright-api-tests.prom`. No Pushgateway, as métricas da execução anterior são removidas antes do envio da nova execução para não mostrar cenários obsoletos.
+
+### Grafana Cloud (web)
+
+O modo Cloud é opcional e preserva o dashboard local. Ele envia apenas métricas agregadas dos testes (resultado, duração e momento da execução); nenhum payload, resposta de API, token ou connection string é publicado.
+
+1. No Grafana Cloud, abra **Stack → Prometheus → Details** e copie a URL de **Remote Write** e o usuário da instância de métricas.
+2. Crie uma **Access Policy Token** apenas com o escopo `metrics:write`.
+3. No `.env` local, preencha `GRAFANA_CLOUD_METRICS_URL`, `GRAFANA_CLOUD_METRICS_USERNAME` e `GRAFANA_CLOUD_METRICS_TOKEN`. Não compartilhe nem versione esses valores.
+4. Execute `npm run observability:cloud:up` e, em seguida, `npm run test:api`.
+5. No Grafana Cloud, use a fonte de dados Prometheus já criada pelo seu stack e importe o arquivo `observability/grafana/dashboards/playwright-api-tests.json` em **Dashboards → New → Import**.
+
+O Alloy local coleta as métricas do Pushgateway e as encaminha com `remote_write` para o Grafana Cloud. Para parar somente esse encaminhador, execute `npm run observability:cloud:down`.
 
 ## Estratégia atual de dados
 
