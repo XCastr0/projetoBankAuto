@@ -5,13 +5,51 @@ Suíte de automação de API para o [BankSystemDevTrail](https://github.com/Joao
 ## Pré-requisitos
 
 - Node.js 20 ou superior
+- Docker Desktop, para o SQL Server de testes e a observabilidade local
+- .NET SDK 8 e `dotnet-ef` 8, para executar localmente a API sob teste
+- Um banco exclusivo, descartável e nunca compartilhado com desenvolvimento ou produção
 
-## Como executar
+## Execução local completa
 
-1. Instale as dependências: `npm install`
-2. Suba a API sob teste em `http://localhost:5082`.
-3. Copie `.env.example` para `.env` e ajuste `API_BASE_URL` se necessário.
-4. Execute os testes: `npm test`
+### 1. Suba o banco e a API
+
+No repositório `BankSystemDevTrail`, crie o `.env` local conforme o `.env.example` da API e execute:
+
+```powershell
+docker compose --env-file .env -f docker-compose.test.yml up -d
+
+$dbPassword = (Get-Content .env |
+  Where-Object { $_ -match '^MSSQL_SA_PASSWORD=' } |
+  ForEach-Object { ($_ -split '=', 2)[1] })
+
+$env:ConnectionStrings__BankDatabase = "Server=tcp:localhost,1434;Database=BankDbTest;User Id=sa;Password=$dbPassword;TrustServerCertificate=True;"
+
+dotnet ef database update --project ProjetoDevTrail.Infra --startup-project ProjetoDevTrail
+dotnet run --project ProjetoDevTrail --launch-profile http
+```
+
+Mantenha esse terminal aberto. A API deve informar `Now listening on: http://localhost:5082`. A senha permanece apenas no `.env` local e não deve ser impressa, compartilhada ou versionada.
+
+### 2. Configure e execute a automação
+
+Em outro terminal, neste repositório:
+
+```powershell
+npm ci
+Copy-Item .env.example .env # somente se o arquivo ainda não existir
+npm run typecheck
+npm run test:api
+```
+
+Antes da execução, preencha no `.env` a `TEST_DB_CONNECTION_STRING` apontando para o mesmo banco descartável usado pela API, por exemplo:
+
+```dotenv
+TEST_DB_CONNECTION_STRING=Server=tcp:localhost,1434;Database=BankDbTest;User Id=sa;Password=<mesma senha local da API>;TrustServerCertificate=True;
+```
+
+A suíte cria a massa pela API e usa essa conexão somente para remover os dados financeiros criados pelo próprio cenário. Nunca copie a senha real para documentação, commits, logs ou mensagens.
+
+O setup global interrompe a execução em até cinco segundos quando `API_BASE_URL` não está acessível. Isso impede que uma indisponibilidade de ambiente seja confundida com a falha esperada de um cenário `@known-bug`.
 
 Comandos úteis:
 
@@ -57,7 +95,15 @@ Os cenários de transação usam SQL Server apenas no cleanup, pois a API preser
 
 ## Integração contínua
 
-O workflow de CI sempre executa instalação reprodutível e typecheck. Os testes de API são executados quando a variável de repositório `API_BASE_URL` estiver configurada para um ambiente de teste acessível ao runner. O token opcional deve ser configurado como o secret `API_TOKEN`; ele nunca é registrado no repositório.
+O workflow de CI sempre executa instalação reprodutível e typecheck. Os testes de API são executados quando a variável de repositório `API_BASE_URL` estiver configurada. O runner precisa alcançar tanto a API quanto o SQL Server exclusivo usado pelo cleanup; valores `localhost` da máquina do desenvolvedor não são acessíveis por um runner hospedado no GitHub.
+
+Configure no GitHub:
+
+- variável `API_BASE_URL`: endereço do ambiente de testes acessível ao runner;
+- secret `TEST_DB_CONNECTION_STRING`: conexão exclusiva do banco de testes;
+- secret opcional `API_TOKEN`: somente quando a API exigir autenticação Bearer.
+
+Nunca configure o workflow contra produção ou um banco compartilhado.
 
 
 ## Organização
@@ -67,11 +113,12 @@ src/
   clients/       Clientes HTTP por domínio da API
   config/        Leitura e validação de ambiente
   schemas/       Tipos e contratos de resposta
-  support/       Utilitários e extensões de fixtures
 tests/
   api/           Testes organizados por recurso/domínio
   fixtures/      Fixtures Playwright reutilizáveis
   data/          Massas de teste estáticas e builders
+  reporters/     Reporter de métricas Prometheus
+  support/       Evidências, setup global e cleanup restrito ao banco de testes
 ```
 
 Crie um cliente por recurso em `src/clients` e mantenha os testes focados em comportamento e asserções. A suíte cobre `Cliente`, `Conta` e `Transações`, incluindo cenários positivos e negativos. Credenciais e URLs ficam exclusivamente em `.env`.

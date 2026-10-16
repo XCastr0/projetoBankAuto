@@ -29,13 +29,14 @@ Esta matriz representa a cobertura implementada na suíte. Os cenários abaixo f
 
 ## Pendências de cobertura
 
-Estas pendências representam regras ainda não implementadas ou não expostas claramente pelo contrato atual da API:
+Estas pendências ainda não possuem um cenário automatizado completo:
 
-- transferência com valor zero ou negativo;
-- transferência para a mesma conta;
-- bloqueio de transações em contas inativas ou bloqueadas;
-- histórico de transações por conta;
+- transferência com valor zero;
+- saque e transferência envolvendo cada combinação de conta bloqueada ou inativa;
+- histórico positivo de transações de uma conta existente;
 - resposta `409 Conflict`, em vez de `500`, ao tentar excluir uma conta com movimentações.
+
+Transferência negativa, transferência para a própria conta, depósito em conta bloqueada e histórico de conta inexistente já possuem testes `@known-bug`; portanto, são cobertura implementada de um comportamento que a API ainda precisa corrigir, e não ausência de automação.
 
 ## Defeitos conhecidos monitorados
 
@@ -55,12 +56,13 @@ Os cenários com a tag `@known-bug` usam `test.fail`. Enquanto o defeito existir
 3. Copie `.env.example` para `.env` e informe `API_BASE_URL` e `TEST_DB_CONNECTION_STRING` do ambiente dedicado. Configure `API_TOKEN` apenas se a API exigir autenticação.
 4. Execute `npm run typecheck`.
 5. Execute `npm run test:api`.
-6. Em caso de falha, diferencie indisponibilidade do ambiente, divergência de contrato e defeito da API antes de alterar a assertion.
-7. Confirme que os recursos `AUTO` criados pela suíte foram removidos após cada cenário.
-8. Abra `npm run test:report` e revise traces das falhas, se existirem.
+6. Se a API estiver indisponível, o setup global encerrará a suíte antes dos cenários; inicie ou corrija o ambiente e execute novamente.
+7. Em outras falhas, diferencie divergência de contrato, defeito da API e defeito do teste antes de alterar qualquer assertion.
+8. Confirme que os recursos `AUTO` criados pela suíte foram removidos após cada cenário.
+9. Abra `npm run test:report` e revise traces das falhas, se existirem.
 
 ## Critérios para avançar
 
-A suíte estará pronta para a próxima evolução quando os cenários acima executarem de forma consistente contra um ambiente dedicado, sem retries, sem depender de dados pré-existentes e sem deixar massa descartável para trás.
+A validação local de 16/10/2026 concluiu os 26 cenários contra um ambiente dedicado, sem retries e sem depender de dados preexistentes. Seis desses cenários monitoram defeitos conhecidos com falha esperada.
 
-Depois disso, a prioridade é evoluir as pendências de transação na própria API. A camada SQL permanece restrita ao cleanup de dados criados pelos testes, no banco dedicado; a preparação de massa continua sendo feita pela API.
+A prioridade seguinte é corrigir as regras transacionais na própria API e ampliar as pendências de cobertura listadas acima. A camada SQL permanece restrita ao cleanup de dados criados pelos testes, no banco dedicado; a preparação de massa continua sendo feita pela API.

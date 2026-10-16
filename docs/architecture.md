@@ -15,6 +15,8 @@ tests/
   api/           cenários organizados por recurso
   data/          builders de massa descartável
   fixtures/      fixtures Playwright que fornecem os clientes aos testes
+  reporters/     exportação de resultados agregados para Prometheus
+  support/       evidências, disponibilidade da API e cleanup de dados
 ```
 
 Cada spec descreve o comportamento esperado da API. As chamadas HTTP ficam nos clientes de domínio e as verificações de formato das respostas ficam nos schemas. Essa separação mantém os testes focados em regras de negócio e facilita identificar a origem de uma falha.
@@ -23,6 +25,7 @@ Cada spec descreve o comportamento esperado da API. As chamadas HTTP ficam nos c
 
 ```text
 Spec Playwright
+  -> setup global valida disponibilidade
   -> fixture de API
   -> cliente de domínio
   -> API sob teste
@@ -33,9 +36,9 @@ Os testes recebem `ClientApi`, `AccountApi` e `TransactionApi` por fixture. Todo
 
 ## Configuração e segurança
 
-`API_BASE_URL` é obrigatória e informa qual instância da API será testada. `API_TOKEN` é opcional e, quando presente, é enviado como Bearer token pelos clientes HTTP.
+`API_BASE_URL` é obrigatória e informa qual instância da API será testada. `TEST_DB_CONNECTION_STRING` é obrigatória nos cenários transacionais que precisam remover o histórico financeiro. `API_TOKEN` é opcional e, quando presente, é enviado como Bearer token pelos clientes HTTP.
 
-Credenciais não pertencem ao repositório: o arquivo `.env` é ignorado pelo Git e o `.env.example` contém apenas valores locais ou vazios. No GitHub Actions, a URL deve ser configurada como variável do repositório e o token como secret.
+Credenciais não pertencem ao repositório: o arquivo `.env` é ignorado pelo Git e o `.env.example` contém apenas valores locais ou vazios. No GitHub Actions, a URL deve ser configurada como variável do repositório; a conexão do banco e o token opcional devem ser configurados como secrets.
 
 ## Estratégia atual de massa
 
@@ -46,17 +49,19 @@ Nesta fase, a preparação é feita pela própria API:
 - recursos descartáveis são removidos no `finally`, na ordem inversa das dependências: conta antes de cliente;
 - dados existentes não são reutilizados nem alterados pela suíte.
 
-Para transações, a conta é criada via API, recebe o saldo necessário via depósito e tem o saldo final consultado pela API. Assim, o teste de depósito, saque ou transferência verifica um efeito observável do negócio sem depender de massa persistente.
+Para transações, a conta é criada via API, recebe o saldo necessário via depósito e tem o saldo final consultado pela API. Assim, o teste de depósito, saque ou transferência verifica um efeito observável do negócio sem depender de massa pré-existente.
 
 ## SQL e banco de dados
 
-O projeto ainda não acessa o banco diretamente. Essa é uma decisão intencional: SQL só deverá ser considerado para preparar pré-condições internas caras quando existirem um banco de testes isolado, conhecimento das migrations, uma estratégia de cleanup e confirmação de que o banco é o source of truth daquele estado.
+O projeto acessa o SQL Server somente no cleanup dos cenários transacionais. A API preserva o histórico financeiro e não permite excluir contas movimentadas pelo contrato público; por isso, depois das assertions, a suíte remove transações, contas e clientes usando exclusivamente os IDs criados pelo próprio teste.
 
-Preparação por SQL não substitui fluxos de API quando o fluxo completo é justamente o objeto do teste, nem deve criar estados incompatíveis com integrações externas.
+Esse acesso exige `TEST_DB_CONNECTION_STRING` apontando para um banco dedicado, descartável e resetável. A limpeza ocorre dentro de uma transação SQL e respeita a ordem inversa das dependências. A suíte não executa cleanup por prefixo, não altera dados preexistentes e nunca deve ser apontada para produção ou ambientes compartilhados.
+
+SQL não é usado para preparar massa ou contornar regras da API. A preparação e todas as ações sob teste continuam passando pelo contrato HTTP público.
 
 ## Playwright e confiabilidade
 
-O Playwright executa os testes em paralelo quando o ambiente permite, bloqueia `test.only` em CI e preserva traces em falhas. A suíte não usa retries automáticos: uma falha deve ser investigada, não repetida até desaparecer.
+O Playwright executa os testes em paralelo quando o ambiente permite, bloqueia `test.only` em CI e preserva traces em falhas. A suíte não usa retries automáticos: uma falha deve ser investigada, não repetida até desaparecer. Antes dos testes, o setup global verifica a disponibilidade de `API_BASE_URL` e encerra a suíte quando a API não responde, evitando falsos positivos nos cenários marcados com `test.fail`.
 
 Cada cenário valida o status HTTP, o contrato disponível e a regra de negócio relevante. Nos testes positivos de transação, o contrato de conta é validado na consulta posterior e o saldo final confirma a alteração de estado.
 
@@ -66,14 +71,16 @@ O workflow em `.github/workflows/ci.yml` executa:
 
 1. `npm ci`;
 2. `npm run typecheck`;
-3. `npm run test:api` quando `API_BASE_URL` estiver configurada para um ambiente de teste acessível ao runner;
+3. `npm run test:api` quando `API_BASE_URL` estiver configurada para um ambiente de teste acessível ao runner e `TEST_DB_CONNECTION_STRING` apontar para o banco descartável correspondente;
 4. publicação de relatório e traces do Playwright como artefatos.
 
 O job de API não roda em pull requests de forks, evitando expor secrets a código não confiável.
 
-## Próximas evoluções
+## Estado validado e próximas evoluções
 
-Antes de introduzir banco, Cloud SQL ou ambientes efêmeros, a próxima validação é executar a suíte contra uma API real e confirmar os contratos de sucesso e o cleanup após transações. Depois disso, a evolução natural é ampliar a cobertura de regras transacionais e somente extrair fixtures ou builders quando houver duplicação comprovada.
+Em 16/10/2026, a suíte foi executada contra uma instância local da API ligada a um SQL Server exclusivo de testes: 26 cenários concluíram com sucesso, incluindo seis defeitos conhecidos monitorados com `test.fail`. O typecheck e o cleanup transacional também foram validados.
+
+As próximas evoluções são ampliar as combinações de contas bloqueadas e inativas, cobrir concorrência financeira em ambiente controlado, validar conflitos de exclusão e converter cada `@known-bug` em regressão normal quando a API for corrigida. Um ambiente remoto descartável pode ser adotado futuramente para executar toda a suíte no GitHub Actions.
 
 ## Decisões registradas
 
