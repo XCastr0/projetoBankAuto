@@ -11,6 +11,10 @@
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
+    "observability:up": "docker compose -f observability/docker-compose.yml up -d",
+    "observability:down": "docker compose -f observability/docker-compose.yml down",
+    "observability:cloud:up": "docker compose -f observability/docker-compose.yml -f observability/docker-compose.cloud.yml up -d alloy",
+    "observability:cloud:down": "docker compose -f observability/docker-compose.yml -f observability/docker-compose.cloud.yml stop alloy",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

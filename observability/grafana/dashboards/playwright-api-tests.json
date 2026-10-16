@@ -1,0 +1,96 @@
+{
+  "annotations": { "list": [] },
+  "description": "Visão operacional da automação da API. Bugs conhecidos são cenários monitorados e não contam como falhas da suíte.",
+  "id": null,
+  "editable": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "description": "Quantidade de cenários executados na última rodada publicada.",
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "blue", "mode": "fixed" }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "targets": [{ "expr": "sum(bank_api_test_cases)", "refId": "A" }],
+      "title": "Cenários executados",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "description": "Cenários que passaram conforme o comportamento esperado da API.",
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "targets": [{ "expr": "bank_api_test_cases{outcome=\"passed\"}", "refId": "A" }],
+      "title": "Comportamento saudável",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "description": "Defeitos já mapeados na API. Eles são acompanhados, mas não quebram a execução enquanto aguardam correção.",
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "orange", "mode": "fixed" }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "targets": [{ "expr": "bank_api_test_cases{outcome=\"known_bug\"}", "refId": "A" }],
+      "title": "Bugs em monitoramento",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "description": "Falhas novas ou bugs corrigidos que ainda precisam atualizar o teste. Qualquer valor acima de zero merece investigação.",
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "value_and_name" },
+      "targets": [{ "expr": "sum(bank_api_test_cases{outcome=~\"failed|unexpected_pass\"})", "refId": "A" }],
+      "title": "Precisa de atenção",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "description": "Distribuição dos resultados da última execução. Use este gráfico para entender rapidamente o estado da suíte.",
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "fillOpacity": 70, "lineWidth": 0, "showPoints": "never", "stacking": { "mode": "normal", "group": "A" } }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 7 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [{ "expr": "sum by (outcome) (bank_api_test_cases)", "legendFormat": "{{outcome}}", "refId": "A" }],
+      "title": "Panorama da execução",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "description": "Cenários mais demorados da última rodada. Ajuda a identificar lentidão e priorizar otimizações.",
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "align": "auto", "cellOptions": { "type": "color-background" }, "inspect": false }, "decimals": 2, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 3 }] }, "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 7 },
+      "id": 6,
+      "options": { "cellHeight": "sm", "showHeader": true },
+      "targets": [{ "expr": "bank_api_test_case_duration_seconds", "format": "table", "instant": true, "refId": "A" }],
+      "title": "Tempo por cenário",
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": ["playwright", "api", "qa", "qualidade"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "Prometheus", "value": "prometheus" },
+        "hide": 2,
+        "includeAll": false,
+        "label": "Fonte de métricas",
+        "multi": false,
+        "name": "prometheus",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Bank API - Qualidade da Automação",
+  "uid": "bank-api-test-quality"
+}

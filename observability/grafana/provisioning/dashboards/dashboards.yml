@@ -1,0 +1,8 @@
+apiVersion: 1
+
+providers:
+  - name: Playwright API Tests
+    folder: QA Automation
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
