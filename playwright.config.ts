@@ -3,6 +3,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
+  globalSetup: './tests/support/api/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   // Falhas devem ser investigadas; retries não devem ocultar instabilidade.
